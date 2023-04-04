@@ -41,7 +41,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         whatReady = select.select([mySocket], [], [], timeLeft)
         howLongInSelect = (time.time() - startedSelect)
         if whatReady[0] == []:  # Timeout
-            return (False, "Request timed out.")
+            return "Request timed out."
 
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
@@ -117,13 +117,16 @@ def ping(host, timeout=1):
     response = pd.DataFrame(columns=['bytes','rtt','ttl']) #This creates an empty dataframe with 3 headers with the column specific names declared
     
     #Send ping requests to a server separated by approximately one second
-    delays = [] # initiated empty list
+ 
     #Add something here to collect the delays of each ping in a list so you can calculate vars after your ping
     
     for i in range(0,4): #Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay, statistics = doOnePing(dest, timeout) #what is stored into delay and statistics?
-        response = response.append({'bytes': 56, 'rtt': delay, 'ttl': '?'}, ignore_index=True) # Append the response to the DataFrame
-        delays.append(delay) # Collect the delay of each ping request in the list
+        # store bytes, rtt, and ttl in the response dataframe
+        icmp_header = statistics.split(':')[-1].strip()
+        stats = dict(item.split('=') for item in icmp_header.split())
+        bytes, rtt, ttl = stats['bytes'], stats['time'], stats['ttl']
+        response = response.append({'bytes': int(bytes), 'rtt': float(rtt), 'ttl': int(ttl)}, ignore_index=True)
         print(delay)
         time.sleep(1)  # wait one second
     
@@ -131,7 +134,7 @@ def ping(host, timeout=1):
     packet_recv = 0
     #fill in start. UPDATE THE QUESTION MARKS
     for index, row in response.iterrows():
-        if row['rtt'] == '?': #access your response df to determine if you received a packet or not
+        if row['bytes'] == 0: #access your response df to determine if you received a packet or not
             packet_lost += 1 
         else:
             packet_recv += 1
