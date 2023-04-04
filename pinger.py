@@ -59,8 +59,10 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         if icmpPacketID == ID:
             # Calculate the round-trip time
             rtt = (timeReceived - time.time()) * 1000
+            response.loc[i] = [56, rtt, '?']
             # Return the response time and other statistics
-            return f"Received from {addr}: bytes=56 time={rtt:.2f} ms TTL=?"
+            return f"Received from {addr}: bytes=56 time={rtt:.2f} ms TTL=?" 
+        
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
