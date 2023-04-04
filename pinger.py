@@ -1,3 +1,8 @@
+"""
+    Name: Abdikadir Ali
+    Assignment: Pinger
+    Due Date: 04/08/2023
+"""
 from socket import *
 import os
 import sys
@@ -47,9 +52,10 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         recPacket, addr = mySocket.recvfrom(1024)
 
         # Fill in start
-
+        icmp_header = recPacket[20:28]
+        
         # Fetch the ICMP header from the IP packet
-
+        icmp_header = struct.unpack("bbHHh", icmp_header)
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
