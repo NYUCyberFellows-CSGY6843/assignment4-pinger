@@ -53,16 +53,13 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         icmpHeader = recPacket[20:28]
         
         # Unpack the ICMP header to extract the type, code, and checksum fields
-        icmpType, icmpCode, icmpChecksum, icmpPacketID, icmpSequence = struct.unpack("bbHHh", icmpHeader)
-        
+        type, code, checksum, packet_id, sequence = struct.unpack("bbHHh", icmp_header)
         # Check if the ID field in the ICMP packet matches the ID field in the sent packet
-        if icmpPacketID == ID:
-            # Calculate the round-trip time
-            rtt = (timeReceived - time.time()) * 1000
-            response.loc[i] = [56, rtt, '?']
-            # Return the response time and other statistics
-            return f"Received from {addr}: bytes=56 time={rtt:.2f} ms TTL=?" 
-        
+        if packet_id == ID:
+            bytes = len(recPacket) - 28
+            rtt = (timeReceived - time.time())*1000
+            ttl = ord(struct.unpack("c", recPacket[8:9])[0])
+            return rtt, bytes, ttl
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
@@ -119,12 +116,14 @@ def ping(host, timeout=1):
     response = pd.DataFrame(columns=['bytes','rtt','ttl']) #This creates an empty dataframe with 3 headers with the column specific names declared
     
     #Send ping requests to a server separated by approximately one second
+    delays = [] # initiated empty list
     #Add something here to collect the delays of each ping in a list so you can calculate vars after your ping
     
     for i in range(0,4): #Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay, statistics = doOnePing(dest, timeout) #what is stored into delay and statistics?
-        response = response.loc[i] = [56, delay, '?']
-        print(delay) 
+        response = response.append({'bytes': 56, 'rtt': delay, 'ttl': '?'}, ignore_index=True) # Append the response to the DataFrame
+        delays.append(delay) # Collect the delay of each ping request in the list
+        print(delay)
         time.sleep(1)  # wait one second
     
     packet_lost = 0
@@ -132,9 +131,9 @@ def ping(host, timeout=1):
     #fill in start. UPDATE THE QUESTION MARKS
     for index, row in response.iterrows():
         if ???? == 0: #access your response df to determine if you received a packet or not
-            packet_lost = #????
+            packet_lost = response['rtt'].isna().sum() 
         else:
-            packet_recv = #????
+            packet_recv = len(delays) - packet_lost
     #fill in end
 
     #You should have the values of delay for each ping here structured in a pandas dataframe; 
