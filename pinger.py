@@ -57,7 +57,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         # Check if the ID field in the ICMP packet matches the ID field in the sent packet
         if packetID == ID:
             bytes = struct.calcsize("d")
-            timeSent = struct.unpack("d", recPacket[28 : 28 + bytes])[0]
+            timeSent = struct.unpack("d", recPacket[20 : 28 + bytes])[0]
             rtt = (timeReceived - timeSent) * 1000
             ttl = ord(struct.unpack("c", recPacket[8:9])[0])
             return f"{bytes} bytes from {addr}: icmp_seq={sequence} ttl={ttl} time={rtt:.2f} ms"
