@@ -134,10 +134,10 @@ def ping(host, timeout=1):
     packet_recv = 0
     #fill in start. UPDATE THE QUESTION MARKS
     for index, row in response.iterrows():
-        if row['bytes'] == 0: #access your response df to determine if you received a packet or not
-            packet_lost += 1 
+        if row['rtt'] == 0: #access your response df to determine if you received a packet or not
+            packet_lost = len(response[response['rtt'] == 'Request timed out.'])
         else:
-            packet_recv += 1
+            packet_recv = len(response) - packet_lost
     #fill in end
 
     #You should have the values of delay for each ping here structured in a pandas dataframe; 
