@@ -56,11 +56,8 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         type, code, checksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
         # Check if the ID field in the ICMP packet matches the ID field in the sent packet
         if packetID == ID:
-            bytes = struct.calcsize("d")
-            timeSent = struct.unpack("d", recPacket[28 : 28 + bytes])[0]
-            rtt = (timeReceived - timeSent) * 1000
-            ttl = ord(struct.unpack("c", recPacket[8:9])[0])
-            return f"{bytes} bytes from {addr}: icmp_seq={sequence} ttl={ttl} time={rtt:.2f} ms"
+        timeSent = struct.unpack("d", recPacket[28:])[0]
+        return timeReceived - timeSent
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
@@ -123,16 +120,16 @@ def ping(host, timeout=1):
     
     for i in range(0,4): #Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay, statistics = doOnePing(dest, timeout) #what is stored into delay and statistics?
+        response = response.append({'bytes': statistics[0], 'rtt': delay * 1000, 'ttl': statistics[1]}, ignore_index=True) #store your bytes, rtt, and ttle here in your response pandas dataframe. An example is commented out below for vars
+        print(delay)
         delays.append(delay)
-        response = response.append(statistics, ignore_index=True) #store your bytes, rtt, and ttle here in your response pandas dataframe. An example is commented out below for vars
-        print(delay) 
         time.sleep(1)  # wait one second
     
     packet_lost = 0
     packet_recv = 0
     #fill in start. UPDATE THE QUESTION MARKS
     for index, row in response.iterrows():
-        if row['rtt'] == 0: #access your response df to determine if you received a packet or not
+        if row['bytes'] == 0: #access your response df to determine if you received a packet or not
             packet_lost += 1
         else:
             packet_recv += 1
@@ -140,10 +137,6 @@ def ping(host, timeout=1):
 
     #You should have the values of delay for each ping here structured in a pandas dataframe; 
     #fill in calculation for packet_min, packet_avg, packet_max, and stdev
-    packet_min = round(response['rtt'].min(), 2)
-    packet_avg = round(response['rtt'].mean(), 2)
-    packet_max = round(response['rtt'].max(), 2)
-    stdev = round(response['rtt'].std(), 2)
     
     vars = pd.DataFrame(columns=['min', 'avg', 'max', 'stddev'])
     vars = vars.append({'min':str(round(response['rtt'].min(), 2)), 'avg':str(round(response['rtt'].mean(), 2)),'max':str(round(response['rtt'].max(), 2)), 'stddev':str(round(response['rtt'].std(),2))}, ignore_index=True)
