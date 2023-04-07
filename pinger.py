@@ -56,8 +56,8 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         type, code, checksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
         # Check if the ID field in the ICMP packet matches the ID field in the sent packet
         if packetID == ID:
-        timeSent = struct.unpack("d", recPacket[28:])[0]
-        return timeReceived - timeSent
+            timeSent = struct.unpack("d", recPacket[28:])[0]
+            return timeReceived - timeSent
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
