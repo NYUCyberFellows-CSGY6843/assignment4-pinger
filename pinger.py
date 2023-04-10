@@ -31,7 +31,7 @@ def checksum(str_):
 
 def receiveOnePing(mySocket, ID, timeout, destAddr):
     timeLeft = timeout
-    while 1:
+    while True:
         startedSelect = time.time()
         whatReady = select.select([mySocket], [], [], timeLeft)
         howLongInSelect = (time.time() - startedSelect)
@@ -41,6 +41,10 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         timeReceived = time.time()
         recPacket, addr = mySocket.recvfrom(1024)
 
+        if len(recPacket) < 28:
+            # Packet too short to contain both IP and ICMP headers
+            return "Invalid packet."
+  
         icmpHeader = recPacket[20:28]
         icmpType, code, mychecksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
     
@@ -53,6 +57,7 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         
         if timeLeft <= 0:
             return "Request timed out."
+
 
 def sendOnePing(mySocket, destAddr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
