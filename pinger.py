@@ -1,3 +1,9 @@
+"""
+Name: Abdikadir Ali
+Assignment: Pinger
+Due Date: 04/08/2023
+Class: CS-GY 6843 2023 Spring CF01 CF02
+"""
 from socket import *
 import os
 import sys
@@ -47,8 +53,16 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         recPacket, addr = mySocket.recvfrom(1024)
 
         # Fill in start
-
+        header = recPacket[20: 28]
         # Fetch the ICMP header from the IP packet
+        
+        icmpType, code, checksum, packetID, sequence = struct.unpack("bbHHh", header)
+
+        if packetID == ID:
+            bytes_in_double = struct.calcsize("d")
+            timeSent = struct.unpack("d", recPacket[28:28 + bytes_in_double])[0]
+            delay = (timeReceived - timeSent) * 1000
+            return delay, [recPacket[8], addr[0]]
 
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
@@ -109,7 +123,7 @@ def ping(host, timeout=1):
     
     for i in range(0,4): #Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay, statistics = doOnePing(dest, timeout) #what is stored into delay and statistics?
-        response = #store your bytes, rtt, and ttle here in your response pandas dataframe. An example is commented out below for vars
+        response = response = response.append({'bytes': statistics[0], 'rtt': delay, 'ttl': statistics[1]}, ignore_index=True) #store your bytes, rtt, and ttle here in your response pandas dataframe. An example is commented out below for vars
         print(delay) 
         time.sleep(1)  # wait one second
     
@@ -117,10 +131,10 @@ def ping(host, timeout=1):
     packet_recv = 0
     #fill in start. UPDATE THE QUESTION MARKS
     for index, row in response.iterrows():
-        if ???? == 0: #access your response df to determine if you received a packet or not
-            packet_lost = #????
+        if row['rtt'] == 0: #access your response df to determine if you received a packet or not
+            packet_lost += 1
         else:
-            packet_recv = #????
+            packet_recv += 1
     #fill in end
 
     #You should have the values of delay for each ping here structured in a pandas dataframe; 
